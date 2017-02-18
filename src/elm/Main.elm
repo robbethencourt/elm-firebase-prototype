@@ -3,6 +3,8 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+import Canvas exposing (Canvas, Position, Size)
+import Color exposing (Color)
 
 
 -- model
@@ -10,6 +12,9 @@ import Html.Attributes exposing (..)
 
 type alias Model =
     { titleInput : String
+    , move : Maybe Position
+    , click : Maybe Position
+    , canvas : Canvas
     , doodles : List Doodle
     , error : Maybe String
     }
@@ -39,6 +44,12 @@ tempDoodles =
 initModel : Model
 initModel =
     { titleInput = ""
+    , move = Nothing
+    , click = Nothing
+    , canvas =
+        Size 500 400
+            |> Canvas.initialize
+            |> Canvas.fill Color.black
     , doodles = tempDoodles
     , error = Nothing
     }
@@ -59,6 +70,8 @@ init flags =
 
 type Msg
     = TitleInput String
+    | MouseDown Position
+    | MouseMove Position
     | Submit
     | Error String
 
@@ -69,11 +82,31 @@ update msg model =
         TitleInput titleInput ->
             ( { model | titleInput = titleInput }, Cmd.none )
 
+        MouseDown position0 ->
+            case model.click of
+                Just position1 ->
+                    ( draw position0 position1 model, Cmd.none )
+
+                Nothing ->
+                    ( { model | click = Just position0 }, Cmd.none )
+
+        MouseMove position ->
+            ( { model | move = Just position }, Cmd.none )
+
         Submit ->
             ( initModel, Cmd.none )
 
         Error error ->
             ( { model | error = Just error }, Cmd.none )
+
+
+draw : Position -> Position -> Model -> Model
+draw p0 p1 model =
+    { model
+        | click = Nothing
+        , canvas =
+            Canvas.drawLine p0 p1 Color.blue model.canvas
+    }
 
 
 
@@ -120,10 +153,36 @@ addDoodle model =
                             ]
                             []
                         ]
+                    , Canvas.toHtml
+                        [ Canvas.onMouseDown MouseDown
+                        , Canvas.onMouseMove MouseMove
+                        , style
+                            [ ( "cursor", "crosshair" ) ]
+                        ]
+                        (renderCanvas model)
                     ]
                 ]
             ]
         ]
+
+
+renderCanvas : Model -> Canvas
+renderCanvas model =
+    case model.move of
+        Nothing ->
+            model.canvas
+
+        Just position0 ->
+            case model.click of
+                Nothing ->
+                    model.canvas
+
+                Just position1 ->
+                    Canvas.drawLine
+                        position0
+                        position1
+                        (Color.hsl 0 0.5 0.5)
+                        model.canvas
 
 
 displayDoodles : List Doodle -> Html Msg
@@ -156,5 +215,5 @@ main =
         { init = init
         , update = update
         , view = view
-        , subscriptions = subscriptions
+        , subscriptions = always Sub.none
         }
