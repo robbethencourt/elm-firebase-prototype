@@ -3,3 +3,64 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
 // can add Boostrap overrides, additional Sass/CSS below...
+
+.graffiti-text-container {
+  height: 300px;
+  overflow: hidden;
+}
+
+.graffiti-text:before {
+  color: #9ECBFF;
+  content: "[";
+  left: 0;
+}
+
+.graffiti-text:after {
+  color: #9ECBFF;
+  content: "]";
+  right: 0;
+}
+
+.graffiti-text {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    font-size: 12em;
+    line-height: .5em;
+    font-weight: bold;
+    color: #A1AAB5;
+    text-align: center;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.graffiti-text li {
+  list-style-type: none;
+}
+
+.graffiti-text li:first-of-type {
+  padding: 2em 10px;
+  display: inline;
+}
+
+.likes {
+  padding: 30px 1em;
+  color: #FFC9F5;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: 1s;
+}
+
+.likes:before {
+    position: relative;
+    top: 5px;
+    content: "\2764 ";
+    font-size: 1.7em;
+    font-weight: bold;
+}
+
+.likes:active {
+  color: #FF8AE9;
+  transition: .5s;
+}
