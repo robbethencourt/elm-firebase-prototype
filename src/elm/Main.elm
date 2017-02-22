@@ -3,6 +3,9 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+import Json.Encode as JE
+import Json.Decode as JD
+import Json.Decode.Pipeline as JDP
 
 
 -- model
@@ -10,12 +13,14 @@ import Html.Attributes exposing (..)
 
 type alias Model =
     { doodleInput : String
-    , fontInput : String
+    , typefaceInput : String
     , textColorInput : String
     , textShadowLightInput : String
     , textShadowDarkInput : String
     , backgroundInput : String
     , doodles : List Doodle
+    , uid : Maybe String
+    , loggedIn : Bool
     , error : Maybe String
     }
 
@@ -23,48 +28,45 @@ type alias Model =
 type alias Doodle =
     { doodleId : String
     , doodle : String
-    , font : String
+    , typeface : String
     , textColor : String
     , textShadowLight : String
     , textShadowDark : String
     , background : String
-    , likes : Int
-    }
-
-
-tempDoodles : List Doodle
-tempDoodles =
-    [ Doodle "1" "something really crazy" "Helvetica" "#A1AAB5" "#ff0000" "#000000" "#ffffff" 1
-    , Doodle "2" "anoher" "georgia" "#A1AAB5" "#ff0000" "#000000" "#333333" 0
-    , Doodle "3" "keep 'em coming'" "Helvetica" "#ff0000" "#ff0000" "#000000" "#ffffff" 3
-    , Doodle "4" "xzp" "Permanent Marker" "#A1AAB5" "#ff0000" "#000000" "#ffffff" 5
-    , Doodle "5" "haha" "Helvetica" "#ffffff" "#ff0000" "#000000" "#aaaaaa" 2
-    , Doodle "6" "nnefvsoi" "Permanent Marker" "#A1AAB5" "#ff0000" "#000000" "#ffffff" 1
-    , Doodle "7" "testing" "Helvetica" "#A1AAB5" "#ff0000" "#000000" "#555555" 10
-    , Doodle "8" "...more testing" "Helvetica" "#ffffff" "#ff0000" "#000000" "#555555" 275
-    ]
-
-
-initModel : Model
-initModel =
-    { doodleInput = ""
-    , fontInput = "Helvetica"
-    , textColorInput = "#A1AAB5"
-    , textShadowLightInput = "ccc"
-    , textShadowDarkInput = "555"
-    , backgroundInput = "fff"
-    , doodles = tempDoodles
-    , error = Nothing
+    , likes : String
     }
 
 
 type alias Flags =
-    { error : Maybe String }
+    { fbLoggedIn : Maybe String }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( initModel, Cmd.none )
+    let
+        loggedIn =
+            flags.fbLoggedIn /= Nothing
+
+        initModel =
+            { doodleInput = ""
+            , typefaceInput = "Helvetica"
+            , textColorInput = "#A1AAB5"
+            , textShadowLightInput = "ccc"
+            , textShadowDarkInput = "555"
+            , backgroundInput = "fff"
+            , doodles = []
+            , uid = flags.fbLoggedIn
+            , loggedIn = False
+            , error = Nothing
+            }
+
+        cmd =
+            if loggedIn then
+                fetchingDoodles "yes"
+            else
+                Cmd.none
+    in
+        ( initModel, cmd )
 
 
 
@@ -73,13 +75,14 @@ init flags =
 
 type Msg
     = TitleInput String
-    | FontChange String
+    | TypefaceChange String
     | TextColorChange String
     | TextShadowColorChange String
     | TextShadowDarkColorChange String
     | BackgroundColorChange String
     | Submit
-    | AddLike String
+    | DoodlesFromFirebase String
+    | AddLike String String
     | Error String
 
 
@@ -89,8 +92,8 @@ update msg model =
         TitleInput doodleInput ->
             ( { model | doodleInput = doodleInput }, Cmd.none )
 
-        FontChange newFont ->
-            ( { model | fontInput = newFont }, Cmd.none )
+        TypefaceChange newTypeface ->
+            ( { model | typefaceInput = newTypeface }, Cmd.none )
 
         TextColorChange newColor ->
             ( { model | textColorInput = newColor }, Cmd.none )
@@ -105,13 +108,110 @@ update msg model =
             ( { model | backgroundInput = newColor }, Cmd.none )
 
         Submit ->
-            ( initModel, Cmd.none )
+            let
+                body =
+                    JE.object
+                        [ ( "doodle", JE.string model.doodleInput )
+                        , ( "typeface", JE.string model.typefaceInput )
+                        , ( "textColor", JE.string model.textColorInput )
+                        , ( "textShadowLight", JE.string model.textShadowLightInput )
+                        , ( "textShadowDark", JE.string model.textShadowDarkInput )
+                        , ( "background", JE.string model.backgroundInput )
+                        ]
+                        |> JE.encode 4
+            in
+                ( { model
+                    | doodleInput = ""
+                    , typefaceInput = "Helvetica"
+                    , textColorInput = "#A1AAB5"
+                    , textShadowLightInput = "ccc"
+                    , textShadowDarkInput = "555"
+                    , backgroundInput = "fff"
+                    , doodles = []
+                  }
+                , saveDoodle body
+                )
 
-        AddLike like ->
-            ( { model | error = Just like }, Cmd.none )
+        DoodlesFromFirebase jsonDoodles ->
+            decodeJson jsonDoodles model
+
+        AddLike like doodleId ->
+            let
+                updatedDoodle =
+                    addLikeToDoodle (findDoodle doodleId model)
+
+                addedDoodleToDoodles =
+                    List.map
+                        (\d ->
+                            if d.doodleId == doodleId then
+                                updatedDoodle
+                            else
+                                d
+                        )
+                        model.doodles
+
+                body =
+                    JE.object
+                        [ ( "doodleId", JE.string doodleId )
+                        , ( "likes", JE.string updatedDoodle.likes )
+                        ]
+                        |> JE.encode 4
+            in
+                ( { model | doodles = addedDoodleToDoodles }, addLikeToFirebase body )
 
         Error error ->
             ( { model | error = Just error }, Cmd.none )
+
+
+addLikeToDoodle : Doodle -> Doodle
+addLikeToDoodle doodle =
+    let
+        likesInt =
+            Result.withDefault 0 (String.toInt doodle.likes)
+    in
+        { doodle | likes = toString (likesInt + 1) }
+
+
+findDoodle : String -> Model -> Doodle
+findDoodle doodleId model =
+    List.head
+        (List.filter
+            (\d -> d.doodleId == doodleId)
+            model.doodles
+        )
+        |> Maybe.withDefault
+            { doodleId = ""
+            , doodle = ""
+            , typeface = ""
+            , textColor = ""
+            , textShadowLight = ""
+            , textShadowDark = ""
+            , background = ""
+            , likes = ""
+            }
+
+
+decodeJson : String -> Model -> ( Model, Cmd Msg )
+decodeJson jsonDoodles model =
+    case JD.decodeString decodeDoodleItem jsonDoodles of
+        Ok doodle ->
+            ( { model | doodles = doodle :: model.doodles }, Cmd.none )
+
+        Err err ->
+            ( { model | error = Just err }, Cmd.none )
+
+
+decodeDoodleItem : JD.Decoder Doodle
+decodeDoodleItem =
+    JDP.decode Doodle
+        |> JDP.required "doodleId" JD.string
+        |> JDP.required "doodle" JD.string
+        |> JDP.required "typeface" JD.string
+        |> JDP.required "textColor" JD.string
+        |> JDP.required "textShadowLight" JD.string
+        |> JDP.required "textShadowDark" JD.string
+        |> JDP.required "background" JD.string
+        |> JDP.required "likes" JD.string
 
 
 
@@ -150,7 +250,7 @@ addDoodle model =
                     [ class "graffiti-text-container"
                     , style
                         [ ( "background", model.backgroundInput )
-                        , ( "font-family", model.fontInput )
+                        , ( "font-family", model.typefaceInput )
                         ]
                     ]
                     [ ul
@@ -184,7 +284,7 @@ addDoodle model =
                         , select
                             [ defaultValue "Helvetica"
                             , class "form-control"
-                            , onInput FontChange
+                            , onInput TypefaceChange
                             ]
                             [ option [] [ text "Helvetica" ]
                             , option [] [ text "Kanit" ]
@@ -221,6 +321,14 @@ addDoodle model =
                             ]
                             []
                         ]
+                    , div [ class "form-group" ]
+                        [ label [] []
+                        , button
+                            [ type_ "submit"
+                            , class "btn btn-default"
+                            ]
+                            [ text "Save Doodle" ]
+                        ]
                     ]
                 ]
             ]
@@ -241,7 +349,7 @@ doodleContainer doodle =
             [ class "graffiti-text-container"
             , style
                 [ ( "background", doodle.background )
-                , ( "font-family", doodle.font )
+                , ( "font-family", doodle.typeface )
                 ]
             ]
             [ ul
@@ -253,7 +361,7 @@ doodleContainer doodle =
                 ]
                 [ li [] [ text doodle.doodle ] ]
             ]
-        , p [ id doodle.doodleId, class "likes", onClick (AddLike (toString doodle.likes)) ] [ text (toString doodle.likes) ]
+        , p [ id doodle.doodleId, class "likes", onClick (AddLike (toString doodle.likes) doodle.doodleId) ] [ text doodle.likes ]
         ]
 
 
@@ -264,13 +372,27 @@ doodleContainer doodle =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ sendLighterHexToElm TextShadowDarkColorChange ]
+        [ sendLighterHexToElm TextShadowDarkColorChange
+        , doodlesFromFirebase DoodlesFromFirebase
+        ]
+
+
+port fetchingDoodles : String -> Cmd msg
 
 
 port sendHexToJs : String -> Cmd msg
 
 
 port sendLighterHexToElm : (String -> msg) -> Sub msg
+
+
+port saveDoodle : String -> Cmd msg
+
+
+port doodlesFromFirebase : (String -> msg) -> Sub msg
+
+
+port addLikeToFirebase : String -> Cmd msg
 
 
 main : Program Flags Model Msg
