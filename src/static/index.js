@@ -6,6 +6,11 @@ var app = Elm.Main.embed(document.getElementById('main'), {fbLoggedIn: ''})
 
 // Ports
 
+// fetch doodles from firebase
+app.ports.fetchingDoodles.subscribe(function () {
+  fetchDoodles()
+})
+
 // hex conversion to lighter color
 app.ports.sendHexToJs.subscribe(function (elmHex) {
   var hexArray =
@@ -30,7 +35,7 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
   app.ports.sendLighterHexToElm.send('#' + newHexArray)
 })
 
-// save doodle to firebase
+// save doodle to firebase, then retrieve all doodles to send back to elm
 app.ports.saveDoodle.subscribe(function (elmDoodle) {
   var jpElmDoodle = JSON.parse(elmDoodle)
   var doodleToSave = {
@@ -49,6 +54,12 @@ app.ports.saveDoodle.subscribe(function (elmDoodle) {
     })
 })
 
+// save like to firebase
+app.ports.addLikeToFirebase.subscribe(function (elmDoodleIdAndLikes) {
+  var jpElmDoodleIdAndLikes = JSON.parse(elmDoodleIdAndLikes)
+  firebaseHelper.addLikeToDoodleInFirebase(jpElmDoodleIdAndLikes)
+})
+
 function fetchDoodles () {
   firebaseHelper.fetchingDoodlesFromFirebase()
     .then(function (fbDoodlesRes) {
@@ -58,8 +69,6 @@ function fetchDoodles () {
 
       var arrayOfDoodleObjects =
         Object.values(fbDoodleObject)
-
-      console.log(arrayOfDoodleObjects)
 
       var doodleObjectsForElm =
         arrayOfDoodleObjects
@@ -76,14 +85,9 @@ function fetchDoodles () {
             }
           })
 
-      console.log(doodleObjectsForElm)
       doodleObjectsForElm
         .forEach(doodle => {
           app.ports.doodlesFromFirebase.send(JSON.stringify(doodle))
         })
     })
 }
-
-app.ports.fetchingDoodles.subscribe(function () {
-  fetchDoodles()
-})

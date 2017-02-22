@@ -82,7 +82,7 @@ type Msg
     | BackgroundColorChange String
     | Submit
     | DoodlesFromFirebase String
-    | AddLike String
+    | AddLike String String
     | Error String
 
 
@@ -133,14 +133,62 @@ update msg model =
                 )
 
         DoodlesFromFirebase jsonDoodles ->
-            -- ( { model | error = Just fbData }, Cmd.none )
             decodeJson jsonDoodles model
 
-        AddLike like ->
-            ( { model | error = Just like }, Cmd.none )
+        AddLike like doodleId ->
+            let
+                updatedDoodle =
+                    addLikeToDoodle (findDoodle doodleId model)
+
+                addedDoodleToDoodles =
+                    List.map
+                        (\d ->
+                            if d.doodleId == doodleId then
+                                updatedDoodle
+                            else
+                                d
+                        )
+                        model.doodles
+
+                body =
+                    JE.object
+                        [ ( "doodleId", JE.string doodleId )
+                        , ( "likes", JE.string updatedDoodle.likes )
+                        ]
+                        |> JE.encode 4
+            in
+                ( { model | doodles = addedDoodleToDoodles }, addLikeToFirebase body )
 
         Error error ->
             ( { model | error = Just error }, Cmd.none )
+
+
+addLikeToDoodle : Doodle -> Doodle
+addLikeToDoodle doodle =
+    let
+        likesInt =
+            Result.withDefault 0 (String.toInt doodle.likes)
+    in
+        { doodle | likes = toString (likesInt + 1) }
+
+
+findDoodle : String -> Model -> Doodle
+findDoodle doodleId model =
+    List.head
+        (List.filter
+            (\d -> d.doodleId == doodleId)
+            model.doodles
+        )
+        |> Maybe.withDefault
+            { doodleId = ""
+            , doodle = ""
+            , typeface = ""
+            , textColor = ""
+            , textShadowLight = ""
+            , textShadowDark = ""
+            , background = ""
+            , likes = ""
+            }
 
 
 decodeJson : String -> Model -> ( Model, Cmd Msg )
@@ -301,7 +349,7 @@ doodleContainer doodle =
             [ class "graffiti-text-container"
             , style
                 [ ( "background", doodle.background )
-                , ( "typeface-family", doodle.typeface )
+                , ( "font-family", doodle.typeface )
                 ]
             ]
             [ ul
@@ -313,7 +361,7 @@ doodleContainer doodle =
                 ]
                 [ li [] [ text doodle.doodle ] ]
             ]
-        , p [ id doodle.doodleId, class "likes", onClick (AddLike (toString doodle.likes)) ] [ text doodle.likes ]
+        , p [ id doodle.doodleId, class "likes", onClick (AddLike (toString doodle.likes) doodle.doodleId) ] [ text doodle.likes ]
         ]
 
 
@@ -342,6 +390,9 @@ port saveDoodle : String -> Cmd msg
 
 
 port doodlesFromFirebase : (String -> msg) -> Sub msg
+
+
+port addLikeToFirebase : String -> Cmd msg
 
 
 main : Program Flags Model Msg
