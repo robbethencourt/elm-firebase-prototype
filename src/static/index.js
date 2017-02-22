@@ -1,11 +1,12 @@
-// pull in desired CSS/SASS files
 require('./styles/main.scss')
+var firebaseHelper = require('./utils/firebaseHelper')
 
-// inject bundled Elm app into div#main
 var Elm = require('../elm/Main')
+var app = Elm.Main.embed(document.getElementById('main'), {fbLoggedIn: ''})
 
-var app = Elm.Main.embed(document.getElementById('main'), {error: ''})
+// Ports
 
+// hex conversion to lighter color
 app.ports.sendHexToJs.subscribe(function (elmHex) {
   var hexArray =
     elmHex
@@ -26,6 +27,63 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
     rgbToHexArray
       .join('')
 
-  console.log('#' + newHexArray)
   app.ports.sendLighterHexToElm.send('#' + newHexArray)
+})
+
+// save doodle to firebase
+app.ports.saveDoodle.subscribe(function (elmDoodle) {
+  var jpElmDoodle = JSON.parse(elmDoodle)
+  var doodleToSave = {
+    doodle: jpElmDoodle.doodle,
+    typeface: jpElmDoodle.typeface,
+    textColor: jpElmDoodle.textColor,
+    textShadowLight: jpElmDoodle.textShadowLight,
+    textShadowDark: jpElmDoodle.textShadowDark,
+    background: jpElmDoodle.background,
+    likes: 0,
+    date: Date.now()
+  }
+  firebaseHelper.saveDoodleToFirebase(doodleToSave)
+    .then(function (fbRes) {
+      fetchDoodles()
+    })
+})
+
+function fetchDoodles () {
+  firebaseHelper.fetchingDoodlesFromFirebase()
+    .then(function (fbDoodlesRes) {
+      var fbDoodleObject = fbDoodlesRes.val()
+      var arrayOfDoodleIds =
+        Object.keys(fbDoodleObject)
+
+      var arrayOfDoodleObjects =
+        Object.values(fbDoodleObject)
+
+      console.log(arrayOfDoodleObjects)
+
+      var doodleObjectsForElm =
+        arrayOfDoodleObjects
+          .map((obj, i) => {
+            return {
+              doodleId: arrayOfDoodleIds[i],
+              doodle: obj.doodle,
+              typeface: obj.typeface,
+              textColor: obj.textColor,
+              textShadowLight: obj.textShadowLight,
+              textShadowDark: obj.textShadowDark,
+              background: obj.background,
+              likes: obj.likes.toString()
+            }
+          })
+
+      console.log(doodleObjectsForElm)
+      doodleObjectsForElm
+        .forEach(doodle => {
+          app.ports.doodlesFromFirebase.send(JSON.stringify(doodle))
+        })
+    })
+}
+
+app.ports.fetchingDoodles.subscribe(function () {
+  fetchDoodles()
 })
