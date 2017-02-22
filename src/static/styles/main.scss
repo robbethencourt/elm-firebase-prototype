@@ -2,23 +2,22 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
-// can add Boostrap overrides, additional Sass/CSS below...
+.doodle-form {
+  color: #A1AAB5;
+}
+
+input[type="color"] {
+  border: none;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+}
 
 .graffiti-text-container {
   height: 300px;
   overflow: hidden;
-}
-
-.graffiti-text:before {
-  color: #9ECBFF;
-  content: "[";
-  left: 0;
-}
-
-.graffiti-text:after {
-  color: #9ECBFF;
-  content: "]";
-  right: 0;
 }
 
 .graffiti-text {
@@ -28,7 +27,6 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
     font-size: 12em;
     line-height: .5em;
     font-weight: bold;
-    color: #A1AAB5;
     text-align: center;
     position: relative;
     top: 50%;
@@ -45,9 +43,9 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 }
 
 .likes {
-  padding: 30px 1em;
-  color: #FFC9F5;
-  font-size: 1.2em;
+  padding: 10px 1em 30px 1em;
+  color: #C7CFD9;
+  font-size: 1em;
   cursor: pointer;
   transition: 1s;
 }
@@ -61,6 +59,6 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 }
 
 .likes:active {
-  color: #FF8AE9;
+  color: #479DFF;
   transition: .5s;
 }
