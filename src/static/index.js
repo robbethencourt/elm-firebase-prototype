@@ -24,7 +24,7 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
 
   var hexToLighterRgb =
     hexArrays
-      .map(hex => Math.round(parseInt(hex, 16) * 0.6).toString(16))
+      .map(hex => Math.round(parseInt(hex, 16) * 0.8).toString(16))
 
   var rgbToHexArray =
     hexToLighterRgb

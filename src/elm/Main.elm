@@ -52,8 +52,8 @@ init flags =
             { doodleInput = ""
             , typefaceInput = "Helvetica"
             , textColorInput = "#A1AAB5"
-            , textShadowLightInput = "ccc"
-            , textShadowDarkInput = "555"
+            , textShadowLightInput = "fff"
+            , textShadowDarkInput = "fff"
             , backgroundInput = "#ffffff"
             , doodles = []
             , uid = flags.fbLoggedIn
@@ -238,7 +238,6 @@ view model =
             [ navBar
             , div [ class "container-fluid" ]
                 [ displayDoodles model.doodles ]
-            , div [ class "container" ] [ text (toString model) ]
             ]
         ]
 
@@ -257,10 +256,10 @@ navBar =
 
 addDoodle : Model -> Html Msg
 addDoodle model =
-    div [ class "container-fluid" ]
+    div [ class "container" ]
         [ div [ class "row" ]
-            [ div [ class "hide-form", onClick HideForm ] [ text "close" ]
-            , div [ class "col-md-3 col-md-offset-4" ]
+            [ div [ class "hide-form", onClick HideForm ] [ p [] [ text "X" ] ]
+            , div [ class "col-md-4 col-md-offset-4" ]
                 [ div
                     [ class "graffiti-text-container"
                     , style
@@ -288,7 +287,7 @@ addDoodle model =
                         [ input
                             [ type_ "text"
                             , class "form-control"
-                            , placeholder "add some elm view doodle"
+                            , placeholder "type away"
                             , value model.doodleInput
                             , onInput TitleInput
                             ]
@@ -299,6 +298,7 @@ addDoodle model =
                         , select
                             [ defaultValue "Helvetica"
                             , class "form-control"
+                            , value model.typefaceInput
                             , onInput TypefaceChange
                             ]
                             [ option [] [ text "Helvetica" ]
@@ -312,6 +312,7 @@ addDoodle model =
                             [ type_ "color"
                             , defaultValue "#ffffff"
                             , class "form-control"
+                            , value model.textColorInput
                             , onInput TextColorChange
                             ]
                             []
@@ -320,8 +321,9 @@ addDoodle model =
                         [ label [] [ text "Text Shadow Color" ]
                         , input
                             [ type_ "color"
-                            , defaultValue "#ffffff"
+                            , defaultValue "ffffff"
                             , class "form-control"
+                            , value model.textShadowDarkInput
                             , onInput TextShadowColorChange
                             ]
                             []
@@ -330,8 +332,9 @@ addDoodle model =
                         [ label [] [ text "Background Color" ]
                         , input
                             [ type_ "color"
-                            , defaultValue "#ffffff"
+                            , defaultValue "ffffff"
                             , class "form-control"
+                            , value model.backgroundInput
                             , onInput BackgroundColorChange
                             ]
                             []
@@ -358,7 +361,7 @@ displayDoodles doodles =
 
 doodleContainer : Doodle -> Html Msg
 doodleContainer doodle =
-    div [ class "col-md-3" ]
+    div [ class "col-lg-2 col-md-3 col-sm-6 nopadding" ]
         [ div
             [ class "graffiti-text-container"
             , style
@@ -375,7 +378,14 @@ doodleContainer doodle =
                 ]
                 [ li [] [ text doodle.doodle ] ]
             ]
-        , p [ id doodle.doodleId, class "likes", onClick (AddLike (toString doodle.likes) doodle.doodleId) ] [ text doodle.likes ]
+        , p
+            [ id doodle.doodleId
+            , class "likes"
+            , style
+                [ ( "color", doodle.textShadowLight ) ]
+            , onClick (AddLike (toString doodle.likes) doodle.doodleId)
+            ]
+            [ text doodle.likes ]
         ]
 
 
