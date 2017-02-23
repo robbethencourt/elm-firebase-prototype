@@ -2,18 +2,72 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
+.doodle-form-container {
+  position: absolute;
+  width: 100%;
+  margin-left: -100%;
+  padding-bottom: 50px;
+  background: rgba(255, 255, 255, 0.95);
+  transition: 0.5s;
+  z-index: 999;
+}
+
+.hide-form {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 20px;
+}
+
 .doodle-form {
+  margin-top: 50px;
   color: #A1AAB5;
 }
 
-input[type="color"] {
+input[type="color"], input[type="text"], select {
   border: none;
+  border-radius: 0;
   width: 100%;
-  padding: 0;
   margin: 0;
   outline: none;
   box-shadow: none;
 }
+
+.btn-custom {
+  margin-top: 50px;
+  border-radius: 0;
+  box-shadow: 1px -1px 15px #ccc;
+  color: #fff;
+  font-weight: bold;
+  background: #3DFFCF;
+  transition: 0.5s;
+}
+
+.btn-custom:hover, .btn-custom:focus {
+  outline: none;
+  color: #fff;
+  background: #3BF5C6;
+  transition: 0.5s;
+}
+
+.btn-custom:active {
+  color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 #ccc;
+  transition: 0.5s;
+}
+
+input[type="text"]:focus, select:focus {
+  background: #eeeeee;
+  transition: 0.5s;
+  box-shadow: none;
+}
+
+input[type="color"] {
+  padding: 0;
+}
+
+::-webkit-color-swatch-wrapper { padding: 0; }
 
 .graffiti-text-container {
   height: 400px;

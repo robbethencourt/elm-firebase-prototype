@@ -21,6 +21,7 @@ type alias Model =
     , doodles : List Doodle
     , uid : Maybe String
     , loggedIn : Bool
+    , marginLeft : String
     , error : Maybe String
     }
 
@@ -53,10 +54,11 @@ init flags =
             , textColorInput = "#A1AAB5"
             , textShadowLightInput = "ccc"
             , textShadowDarkInput = "555"
-            , backgroundInput = "fff"
+            , backgroundInput = "#ffffff"
             , doodles = []
             , uid = flags.fbLoggedIn
             , loggedIn = False
+            , marginLeft = "-100%"
             , error = Nothing
             }
 
@@ -83,6 +85,8 @@ type Msg
     | Submit
     | DoodlesFromFirebase String
     | AddLike String String
+    | ShowForm
+    | HideForm
     | Error String
 
 
@@ -126,8 +130,9 @@ update msg model =
                     , textColorInput = "#A1AAB5"
                     , textShadowLightInput = "ccc"
                     , textShadowDarkInput = "555"
-                    , backgroundInput = "fff"
+                    , backgroundInput = "#ffffff"
                     , doodles = []
+                    , marginLeft = "-100%"
                   }
                 , saveDoodle body
                 )
@@ -158,6 +163,12 @@ update msg model =
                         |> JE.encode 4
             in
                 ( { model | doodles = addedDoodleToDoodles }, addLikeToFirebase body )
+
+        ShowForm ->
+            ( { model | marginLeft = "0px" }, Cmd.none )
+
+        HideForm ->
+            ( { model | marginLeft = "-100%" }, Cmd.none )
 
         Error error ->
             ( { model | error = Just error }, Cmd.none )
@@ -220,12 +231,15 @@ decodeDoodleItem =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ navBar
-        , addDoodle model
-        , div [ class "container-fluid" ]
-            [ displayDoodles model.doodles ]
-        , div [ class "container" ] [ text (toString model) ]
+    div [ class "wrapper" ]
+        [ div [ class "doodle-form-container", style [ ( "margin-left", model.marginLeft ) ] ]
+            [ addDoodle model ]
+        , div [ id "main" ]
+            [ navBar
+            , div [ class "container-fluid" ]
+                [ displayDoodles model.doodles ]
+            , div [ class "container" ] [ text (toString model) ]
+            ]
         ]
 
 
@@ -235,7 +249,7 @@ navBar =
         [ nav [ class "navbar" ]
             [ div [ class "container-fluid" ]
                 [ div [ class "navbar-header" ]
-                    [ a [ class "navbar-brand", href "#" ] [ text "Doodles" ] ]
+                    [ a [ class "navbar-brand", onClick ShowForm ] [ text "Add Doodle" ] ]
                 ]
             ]
         ]
@@ -245,7 +259,8 @@ addDoodle : Model -> Html Msg
 addDoodle model =
     div [ class "container-fluid" ]
         [ div [ class "row" ]
-            [ div [ class "col-md-3 col-md-offset-4" ]
+            [ div [ class "hide-form", onClick HideForm ] [ text "close" ]
+            , div [ class "col-md-3 col-md-offset-4" ]
                 [ div
                     [ class "graffiti-text-container"
                     , style
@@ -321,11 +336,10 @@ addDoodle model =
                             ]
                             []
                         ]
-                    , div [ class "form-group" ]
-                        [ label [] []
-                        , button
+                    , div [ class "form-group text-center" ]
+                        [ button
                             [ type_ "submit"
-                            , class "btn btn-default"
+                            , class "btn btn-custom"
                             ]
                             [ text "Save Doodle" ]
                         ]
