@@ -48,6 +48,7 @@ app.ports.saveDoodle.subscribe(function (elmDoodle) {
     likes: 0,
     date: Date.now()
   }
+
   firebaseHelper.saveDoodleToFirebase(doodleToSave)
     .then(function (fbRes) {
       fetchDoodles()

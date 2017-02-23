@@ -1,5 +1,4 @@
 /* global firebase */
-
 var config = require('../../../keys')
 var fbApp = firebase.initializeApp(config)
 var database = fbApp.database()
