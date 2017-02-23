@@ -2,21 +2,107 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
-.doodle-form {
+.wrapper {
+  background-image: url('../img/doodles.png');
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: auto 50px;
+}
+
+body {
+  background: -webkit-linear-gradient(-45deg, rgba(242,246,248,1) 0%,rgba(215,228,242,1) 51%,rgba(216,225,231,1) 51%,rgba(232,238,247,1) 51%,rgba(224,239,249,1) 100%);
+}
+
+.navbar {
+  margin-bottom: 0;
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 7px 7px 50px #fff, inset -8px -7px 50px #fff;
+  font-weight: bold;
+}
+
+.navbar a, .navbar a:hover, .navbar a:focus {
+  color: #93ABC4;
+}
+
+.doodle-form-container {
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+  margin-left: -100%;
+  padding: 50px 0;
+  background: #1E1F21;
+  transition: 0.3s;
+  z-index: 999;
+}
+
+.hide-form {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 20px;
   color: #A1AAB5;
+  font-weight: bold;
+}
+
+.doodle-form {
+  margin-top: 50px;
+  color: #A1AAB5;
+}
+
+label {
+  font-weight: normal;
+}
+
+input[type="color"], input[type="text"], select {
+  border: none;
+  border-bottom: 3px solid #aaa;
+  border-radius: 0;
+  width: 100%;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+  background: #1E1F21;
+}
+
+input[type="text"]:focus, select:focus {
+  background: #121212;
+  transition: 0.5s;
+  box-shadow: none;
 }
 
 input[type="color"] {
   border: none;
-  width: 100%;
   padding: 0;
-  margin: 0;
+}
+
+::-webkit-color-swatch-wrapper { padding: 0; }
+
+.btn-custom {
+  margin-top: 50px;
+  border-radius: 0;
+  box-shadow: 1px -1px 15px #0f0f0f;
+  color: #fff;
+  font-weight: bold;
+  background: #66afe9;
+  transition: 0.5s;
+}
+
+.btn-custom:hover, .btn-custom:focus {
   outline: none;
-  box-shadow: none;
+  color: #fff;
+  background: #4196D9;
+  transition: 0.5s;
+}
+
+.btn-custom:active {
+  color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 #ccc;
+  transition: 0.5s;
 }
 
 .graffiti-text-container {
-  height: 400px;
+  height: 250px;
   overflow: hidden;
 }
 
@@ -24,8 +110,8 @@ input[type="color"] {
     margin-top: 0;
     margin-bottom: 0;
     padding-left: 0;
-    font-size: 10em;
-    line-height: .75em;
+    font-size: 7em;
+    line-height: .6em;
     font-weight: bold;
     text-align: center;
     position: relative;
@@ -43,7 +129,9 @@ input[type="color"] {
 }
 
 .likes {
-  padding: 10px 1em 30px 1em;
+  position: absolute;
+  top: 0;
+  padding: 10px 1em 10px 1em;
   color: #C7CFD9;
   font-size: 1em;
   cursor: pointer;
@@ -52,13 +140,24 @@ input[type="color"] {
 
 .likes:before {
     position: relative;
-    top: 5px;
+    top: 1px;
     content: "\2764 ";
-    font-size: 1.7em;
+    font-size: 1.2em;
     font-weight: bold;
 }
 
 .likes:active {
   color: #479DFF;
   transition: .5s;
+}
+
+.nopadding {
+   padding: 0 !important;
+  //  margin: 0 !important;
+   margin: 1.5%;
+  box-shadow: 3px 3px 35px #BFCEDE;
+}
+
+.nopadding p {
+  margin: 0;
 }

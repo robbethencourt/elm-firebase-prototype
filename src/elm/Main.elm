@@ -21,6 +21,7 @@ type alias Model =
     , doodles : List Doodle
     , uid : Maybe String
     , loggedIn : Bool
+    , marginLeft : String
     , error : Maybe String
     }
 
@@ -51,12 +52,13 @@ init flags =
             { doodleInput = ""
             , typefaceInput = "Helvetica"
             , textColorInput = "#A1AAB5"
-            , textShadowLightInput = "ccc"
-            , textShadowDarkInput = "555"
-            , backgroundInput = "fff"
+            , textShadowLightInput = "fff"
+            , textShadowDarkInput = "fff"
+            , backgroundInput = "#ffffff"
             , doodles = []
             , uid = flags.fbLoggedIn
-            , loggedIn = False
+            , loggedIn = loggedIn
+            , marginLeft = "-100%"
             , error = Nothing
             }
 
@@ -83,6 +85,8 @@ type Msg
     | Submit
     | DoodlesFromFirebase String
     | AddLike String String
+    | ShowForm
+    | HideForm
     | Error String
 
 
@@ -126,8 +130,9 @@ update msg model =
                     , textColorInput = "#A1AAB5"
                     , textShadowLightInput = "ccc"
                     , textShadowDarkInput = "555"
-                    , backgroundInput = "fff"
+                    , backgroundInput = "#ffffff"
                     , doodles = []
+                    , marginLeft = "-100%"
                   }
                 , saveDoodle body
                 )
@@ -158,6 +163,12 @@ update msg model =
                         |> JE.encode 4
             in
                 ( { model | doodles = addedDoodleToDoodles }, addLikeToFirebase body )
+
+        ShowForm ->
+            ( { model | marginLeft = "0px" }, Cmd.none )
+
+        HideForm ->
+            ( { model | marginLeft = "-100%" }, Cmd.none )
 
         Error error ->
             ( { model | error = Just error }, Cmd.none )
@@ -220,13 +231,18 @@ decodeDoodleItem =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ navBar
-        , addDoodle model
-        , div [ class "container-fluid" ]
-            [ displayDoodles model.doodles ]
-        , div [ class "container" ] [ text (toString model) ]
-        ]
+    if model.loggedIn then
+        div [ class "wrapper" ]
+            [ div [ class "doodle-form-container", style [ ( "margin-left", model.marginLeft ) ] ]
+                [ addDoodle model ]
+            , div [ id "main" ]
+                [ navBar
+                , div [ class "container-fluid" ]
+                    [ displayDoodles model.doodles ]
+                ]
+            ]
+    else
+        div [ style [ ( "background", "#ff0000" ), ( "margin", "0 auto" ), ( "padding", "1em" ), ( "color", "#ffffff" ) ] ] [ text "Woops, you're not logged in, sonny!" ]
 
 
 navBar : Html Msg
@@ -235,7 +251,7 @@ navBar =
         [ nav [ class "navbar" ]
             [ div [ class "container-fluid" ]
                 [ div [ class "navbar-header" ]
-                    [ a [ class "navbar-brand", href "#" ] [ text "Doodles" ] ]
+                    [ a [ class "navbar-brand", onClick ShowForm ] [ text "Add Doodle" ] ]
                 ]
             ]
         ]
@@ -243,9 +259,10 @@ navBar =
 
 addDoodle : Model -> Html Msg
 addDoodle model =
-    div [ class "container-fluid" ]
+    div [ class "container" ]
         [ div [ class "row" ]
-            [ div [ class "col-md-3 col-md-offset-4" ]
+            [ div [ class "hide-form", onClick HideForm ] [ p [] [ text "X" ] ]
+            , div [ class "col-md-4 col-md-offset-4" ]
                 [ div
                     [ class "graffiti-text-container"
                     , style
@@ -273,7 +290,7 @@ addDoodle model =
                         [ input
                             [ type_ "text"
                             , class "form-control"
-                            , placeholder "add some elm view doodle"
+                            , placeholder "type away"
                             , value model.doodleInput
                             , onInput TitleInput
                             ]
@@ -284,6 +301,7 @@ addDoodle model =
                         , select
                             [ defaultValue "Helvetica"
                             , class "form-control"
+                            , value model.typefaceInput
                             , onInput TypefaceChange
                             ]
                             [ option [] [ text "Helvetica" ]
@@ -297,6 +315,7 @@ addDoodle model =
                             [ type_ "color"
                             , defaultValue "#ffffff"
                             , class "form-control"
+                            , value model.textColorInput
                             , onInput TextColorChange
                             ]
                             []
@@ -305,8 +324,9 @@ addDoodle model =
                         [ label [] [ text "Text Shadow Color" ]
                         , input
                             [ type_ "color"
-                            , defaultValue "#ffffff"
+                            , defaultValue "ffffff"
                             , class "form-control"
+                            , value model.textShadowDarkInput
                             , onInput TextShadowColorChange
                             ]
                             []
@@ -315,17 +335,17 @@ addDoodle model =
                         [ label [] [ text "Background Color" ]
                         , input
                             [ type_ "color"
-                            , defaultValue "#ffffff"
+                            , defaultValue "ffffff"
                             , class "form-control"
+                            , value model.backgroundInput
                             , onInput BackgroundColorChange
                             ]
                             []
                         ]
-                    , div [ class "form-group" ]
-                        [ label [] []
-                        , button
+                    , div [ class "form-group text-center" ]
+                        [ button
                             [ type_ "submit"
-                            , class "btn btn-default"
+                            , class "btn btn-custom"
                             ]
                             [ text "Save Doodle" ]
                         ]
@@ -344,7 +364,7 @@ displayDoodles doodles =
 
 doodleContainer : Doodle -> Html Msg
 doodleContainer doodle =
-    div [ class "col-md-3" ]
+    div [ class "col-lg-2 col-md-3 col-sm-6 nopadding" ]
         [ div
             [ class "graffiti-text-container"
             , style
@@ -361,7 +381,14 @@ doodleContainer doodle =
                 ]
                 [ li [] [ text doodle.doodle ] ]
             ]
-        , p [ id doodle.doodleId, class "likes", onClick (AddLike (toString doodle.likes) doodle.doodleId) ] [ text doodle.likes ]
+        , p
+            [ id doodle.doodleId
+            , class "likes"
+            , style
+                [ ( "color", doodle.textShadowLight ) ]
+            , onClick (AddLike doodle.likes doodle.doodleId)
+            ]
+            [ text doodle.likes ]
         ]
 
 
@@ -372,24 +399,24 @@ doodleContainer doodle =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ sendLighterHexToElm TextShadowDarkColorChange
-        , doodlesFromFirebase DoodlesFromFirebase
+        [ doodlesFromFirebase DoodlesFromFirebase
+        , sendDarkerHexToElm TextShadowDarkColorChange
         ]
 
 
 port fetchingDoodles : String -> Cmd msg
 
 
+port doodlesFromFirebase : (String -> msg) -> Sub msg
+
+
 port sendHexToJs : String -> Cmd msg
 
 
-port sendLighterHexToElm : (String -> msg) -> Sub msg
+port sendDarkerHexToElm : (String -> msg) -> Sub msg
 
 
 port saveDoodle : String -> Cmd msg
-
-
-port doodlesFromFirebase : (String -> msg) -> Sub msg
 
 
 port addLikeToFirebase : String -> Cmd msg

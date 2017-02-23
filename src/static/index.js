@@ -2,7 +2,7 @@ require('./styles/main.scss')
 var firebaseHelper = require('./utils/firebaseHelper')
 
 var Elm = require('../elm/Main')
-var app = Elm.Main.embed(document.getElementById('main'), {fbLoggedIn: ''})
+var app = Elm.Main.embed(document.getElementById('main'), {fbLoggedIn: 'ok to go'}) // null allows elm to pass error to user
 
 // Ports
 
@@ -22,7 +22,7 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
 
   var hexToLighterRgb =
     hexArrays
-      .map(hex => Math.round(parseInt(hex, 16) * 0.6).toString(16))
+      .map(hex => Math.round(parseInt(hex, 16) * 0.8).toString(16))
 
   var rgbToHexArray =
     hexToLighterRgb
@@ -32,7 +32,7 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
     rgbToHexArray
       .join('')
 
-  app.ports.sendLighterHexToElm.send('#' + newHexArray)
+  app.ports.sendDarkerHexToElm.send('#' + newHexArray)
 })
 
 // save doodle to firebase, then retrieve all doodles to send back to elm
