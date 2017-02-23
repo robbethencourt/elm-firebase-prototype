@@ -57,7 +57,7 @@ init flags =
             , backgroundInput = "#ffffff"
             , doodles = []
             , uid = flags.fbLoggedIn
-            , loggedIn = False
+            , loggedIn = loggedIn
             , marginLeft = "-100%"
             , error = Nothing
             }
@@ -231,15 +231,18 @@ decodeDoodleItem =
 
 view : Model -> Html Msg
 view model =
-    div [ class "wrapper" ]
-        [ div [ class "doodle-form-container", style [ ( "margin-left", model.marginLeft ) ] ]
-            [ addDoodle model ]
-        , div [ id "main" ]
-            [ navBar
-            , div [ class "container-fluid" ]
-                [ displayDoodles model.doodles ]
+    if model.loggedIn then
+        div [ class "wrapper" ]
+            [ div [ class "doodle-form-container", style [ ( "margin-left", model.marginLeft ) ] ]
+                [ addDoodle model ]
+            , div [ id "main" ]
+                [ navBar
+                , div [ class "container-fluid" ]
+                    [ displayDoodles model.doodles ]
+                ]
             ]
-        ]
+    else
+        div [ style [ ( "background", "#ff0000" ), ( "margin", "0 auto" ), ( "padding", "1em" ), ( "color", "#ffffff" ) ] ] [ text "Woops, you're not logged in, sonny!" ]
 
 
 navBar : Html Msg
@@ -383,7 +386,7 @@ doodleContainer doodle =
             , class "likes"
             , style
                 [ ( "color", doodle.textShadowLight ) ]
-            , onClick (AddLike (toString doodle.likes) doodle.doodleId)
+            , onClick (AddLike doodle.likes doodle.doodleId)
             ]
             [ text doodle.likes ]
         ]
@@ -396,24 +399,24 @@ doodleContainer doodle =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ sendLighterHexToElm TextShadowDarkColorChange
-        , doodlesFromFirebase DoodlesFromFirebase
+        [ doodlesFromFirebase DoodlesFromFirebase
+        , sendDarkerHexToElm TextShadowDarkColorChange
         ]
 
 
 port fetchingDoodles : String -> Cmd msg
 
 
+port doodlesFromFirebase : (String -> msg) -> Sub msg
+
+
 port sendHexToJs : String -> Cmd msg
 
 
-port sendLighterHexToElm : (String -> msg) -> Sub msg
+port sendDarkerHexToElm : (String -> msg) -> Sub msg
 
 
 port saveDoodle : String -> Cmd msg
-
-
-port doodlesFromFirebase : (String -> msg) -> Sub msg
 
 
 port addLikeToFirebase : String -> Cmd msg

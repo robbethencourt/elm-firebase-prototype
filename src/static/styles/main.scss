@@ -2,14 +2,21 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
+.wrapper {
+  background-image: url('../img/doodles.png');
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: auto 50px;
+}
+
 body {
   background: -webkit-linear-gradient(-45deg, rgba(242,246,248,1) 0%,rgba(215,228,242,1) 51%,rgba(216,225,231,1) 51%,rgba(232,238,247,1) 51%,rgba(224,239,249,1) 100%);
 }
 
 .navbar {
   margin-bottom: 0;
-  background-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 3px 3px 20px #fff;
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 7px 7px 50px #fff, inset -8px -7px 50px #fff;
   font-weight: bold;
 }
 
@@ -24,7 +31,7 @@ body {
   margin-left: -100%;
   padding: 50px 0;
   background: #1E1F21;
-  transition: 0.5s;
+  transition: 0.3s;
   z-index: 999;
 }
 
@@ -104,7 +111,7 @@ input[type="color"] {
     margin-bottom: 0;
     padding-left: 0;
     font-size: 7em;
-    line-height: .5em;
+    line-height: .6em;
     font-weight: bold;
     text-align: center;
     position: relative;
