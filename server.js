@@ -19,7 +19,7 @@ app.use(express.static('./dist'))
 
 // Main Route. This route will redirect to our rendered React application
 app.get('/', function (req, res) {
-  res.sendFile('./dist/index.html')
+  res.sendFile('./src/static/index.html')
 }) // end app.get()
 
 // this is the listener setup for integrating socket.io
