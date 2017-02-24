@@ -23,13 +23,13 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
   var hexToLighterRgb =
     hexArrays
       .map(function (hex) {
-        Math.round(parseInt(hex, 16) * 0.8).toString(16)
+        return Math.round(parseInt(hex, 16) * 0.8).toString(16)
       })
 
   var rgbToHexArray =
     hexToLighterRgb
       .map(function (rgb) {
-        rgb.length === 1 ? rgb + rgb : rgb
+        return rgb.length === 1 ? rgb + rgb : rgb
       })
 
   var newHexArray =
