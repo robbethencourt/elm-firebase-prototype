@@ -22,11 +22,15 @@ app.ports.sendHexToJs.subscribe(function (elmHex) {
 
   var hexToLighterRgb =
     hexArrays
-      .map(hex => Math.round(parseInt(hex, 16) * 0.8).toString(16))
+      .map(function (hex) {
+        Math.round(parseInt(hex, 16) * 0.8).toString(16)
+      })
 
   var rgbToHexArray =
     hexToLighterRgb
-      .map(rgb => rgb.length === 1 ? rgb + rgb : rgb)
+      .map(function (rgb) {
+        rgb.length === 1 ? rgb + rgb : rgb
+      })
 
   var newHexArray =
     rgbToHexArray
@@ -73,7 +77,7 @@ function fetchDoodles () {
 
       var doodleObjectsForElm =
         arrayOfDoodleObjects
-          .map((obj, i) => {
+          .map(function (obj, i) {
             return {
               doodleId: arrayOfDoodleIds[i],
               doodle: obj.doodle,
@@ -87,7 +91,7 @@ function fetchDoodles () {
           })
 
       doodleObjectsForElm
-        .forEach(doodle => {
+        .forEach(function (doodle) {
           app.ports.doodlesFromFirebase.send(JSON.stringify(doodle))
         })
     })
