@@ -13,13 +13,13 @@ app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.text())
 app.use(bodyParser.json({type: 'application/vnd.api+json'}))
 
-app.use(express.static('./src'))
+app.use(express.static('./dist'))
 
 // Routes
 
 // Main Route. This route will redirect to our rendered React application
 app.get('/', function (req, res) {
-  res.sendFile('./src/static/index.html')
+  res.sendFile(__dirname + './dist/index.html')
 }) // end app.get()
 
 // this is the listener setup for integrating socket.io
